@@ -4,10 +4,7 @@ extern crate rustc_hir;
 extern crate rustc_span;
 
 use clippy_utils::{
-    consts::{
-        Constant,
-        ConstEvalCtxt,
-    },
+    consts::{ConstEvalCtxt, Constant},
     is_integer_literal,
 };
 use common::{
@@ -83,10 +80,7 @@ impl<'tcx> LateLintPass<'tcx> for IntegerOverflowOrUnderflow {
 }
 
 /// Attempts to evaluate an expression only if its value is not dependent on other items.
-pub fn constant_simple<'tcx>(
-    lcx: &LateContext<'tcx>,
-    e: &Expr<'_>,
-) -> Option<Constant<'tcx>> {
+pub fn constant_simple<'tcx>(lcx: &LateContext<'tcx>, e: &Expr<'_>) -> Option<Constant<'tcx>> {
     ConstEvalCtxt::new(lcx).eval_simple(e)
 }
 
@@ -99,7 +93,7 @@ pub struct ArithmeticContext {
 }
 impl ArithmeticContext {
     fn skip_expr(&mut self, e: &hir::Expr<'_>) -> bool {
-        self.expr_id.is_some() || self.const_span.map_or(false, |span| span.contains(e.span))
+        self.expr_id.is_some() || self.const_span.is_some_and(|span| span.contains(e.span))
     }
 
     pub fn check_binary<'tcx>(

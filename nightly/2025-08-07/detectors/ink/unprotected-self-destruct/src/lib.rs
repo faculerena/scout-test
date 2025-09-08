@@ -9,8 +9,8 @@ use common::{
     macros::expose_lint_info,
 };
 use rustc_hir::{
-    intravisit::{walk_expr, Visitor},
     Expr, ExprKind, QPath,
+    intravisit::{Visitor, walk_expr},
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::{
@@ -20,7 +20,7 @@ use rustc_middle::{
     },
     ty::TyKind,
 };
-use rustc_span::{def_id::DefId, Span};
+use rustc_span::{Span, def_id::DefId};
 
 const LINT_MESSAGE: &str = "This terminate_contract is called without access control";
 
@@ -121,20 +121,19 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedSelfDestruct {
                     continue;
                 }
                 let terminator = bb_data.terminator.clone().unwrap();
-                if let TerminatorKind::Call { func, .. } = terminator.kind {
-                    if let Operand::Constant(fn_const) = func
-                        && let Const::Val(_const_val, ty) = fn_const.const_
-                        && let TyKind::FnDef(def, _subs) = ty.kind()
-                    {
-                        if caller_def_id.is_some_and(|d| d == *def) {
-                            callers_vec
-                                .callers
-                                .push((bb_data, BasicBlock::from_usize(bb)));
-                        } else if terminate_def_id.is_some_and(|d| d == *def) {
-                            callers_vec
-                                .terminates
-                                .push((bb_data, BasicBlock::from_usize(bb)));
-                        }
+                if let TerminatorKind::Call { func, .. } = terminator.kind
+                    && let Operand::Constant(fn_const) = func
+                    && let Const::Val(_const_val, ty) = fn_const.const_
+                    && let TyKind::FnDef(def, _subs) = ty.kind()
+                {
+                    if caller_def_id.is_some_and(|d| d == *def) {
+                        callers_vec
+                            .callers
+                            .push((bb_data, BasicBlock::from_usize(bb)));
+                    } else if terminate_def_id.is_some_and(|d| d == *def) {
+                        callers_vec
+                            .terminates
+                            .push((bb_data, BasicBlock::from_usize(bb)));
                     }
                 }
             }

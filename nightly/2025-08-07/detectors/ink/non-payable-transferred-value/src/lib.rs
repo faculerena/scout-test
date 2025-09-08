@@ -9,9 +9,9 @@ use common::{
     macros::expose_lint_info,
 };
 use rustc_ast::{
-    tokenstream::{TokenStream, TokenTree},
-    visit::{walk_block, walk_expr, Visitor},
     AssocItem, AssocItemKind, AttrArgs, AttrKind, Attribute, DelimArgs, ExprKind, MethodCall,
+    tokenstream::{TokenStream, TokenTree},
+    visit::{Visitor, walk_block, walk_expr},
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::Span;
@@ -25,8 +25,7 @@ pub static NON_PAYABLE_TRANSFERRED_VALUE_INFO: LintInfo = LintInfo {
     short_message: LINT_MESSAGE,
     long_message: "",
     severity: Severity::Enhancement,
-    help:
-        "https://coinfabrik.github.io/scout-audit/docs/detectors/ink/non-payable-transferred-value",
+    help: "https://coinfabrik.github.io/scout-audit/docs/detectors/ink/non-payable-transferred-value",
     vulnerability_class: VulnerabilityClass::BestPractices,
 };
 
@@ -113,7 +112,7 @@ fn is_token_present(token_stream: &TokenStream, find: &str) -> bool {
     token_stream.iter().any(|tree| match tree {
         TokenTree::Token(token, _) => token
             .ident()
-            .map_or(false, |ident| ident.0.name.to_string() == find),
+            .is_some_and(|ident| ident.0.name.to_string() == find),
         TokenTree::Delimited(_, _, _, token_stream) => is_token_present(token_stream, find),
     })
 }

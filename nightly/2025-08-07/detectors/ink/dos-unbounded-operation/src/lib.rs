@@ -10,14 +10,13 @@ use common::{
 };
 use rustc_ast::LitKind;
 use rustc_hir::{
-    intravisit::{walk_expr, FnKind, Visitor},
     ExprKind, LangItem, MatchSource, QPath,
+    intravisit::{FnKind, Visitor, walk_expr},
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_span::{def_id::LocalDefId, Span};
+use rustc_span::{Span, def_id::LocalDefId};
 
-const LINT_MESSAGE: &str =
-    "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided";
+const LINT_MESSAGE: &str = "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided";
 
 #[expose_lint_info]
 pub static DOS_UNBOUNDED_OPERATION_INFO: LintInfo = LintInfo {
@@ -47,7 +46,7 @@ impl<'tcx> Visitor<'tcx> for ForLoopVisitor {
             && let QPath::LangItem(item, _span) = qpath
             && item == &LangItem::IntoIterIntoIter
         {
-            if args.first().is_some()
+            if !args.is_empty()
                 && let ExprKind::Struct(qpath, fields, _) = args.first().unwrap().kind
                 && let QPath::LangItem(langitem, _span) = qpath
                 && (LangItem::Range == *langitem

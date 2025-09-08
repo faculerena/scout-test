@@ -5,10 +5,7 @@ extern crate rustc_span;
 
 use clippy_utils::diagnostics::span_lint_and_help;
 use common::{
-    declarations::{
-        Severity,
-        VulnerabilityClass,
-    },
+    declarations::{Severity, VulnerabilityClass},
     macros::expose_lint_info,
 };
 use common_utils::clippy_sym;
@@ -65,9 +62,9 @@ impl AvoidDebugInfo {
         item.attrs.iter().any(|attr| {
             attr.has_name(sym::test)
                 || (attr.has_name(sym::cfg)
-                    && attr.meta_item_list().map_or(false, |list| {
-                        list.iter().any(|item| item.has_name(sym::test))
-                    }))
+                    && attr
+                        .meta_item_list()
+                        .is_some_and(|list| list.iter().any(|item| item.has_name(sym::test))))
                 || matches!(
                     &attr.kind,
                     AttrKind::Normal(normal) if Self::is_test_token_present(&normal.item.args)
